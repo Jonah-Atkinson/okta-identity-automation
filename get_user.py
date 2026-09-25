@@ -1,27 +1,35 @@
+import argparse
 import os
-import requests
 from dotenv import load_dotenv
+from manage import manage_data
 
 
 load_dotenv()
 
 ORG = os.environ["OKTA_ORG_URL"]
-TOKEN = os.environ["OKTA_API_TOKEN"]
 
-headers = {
-    "Authorization": f"SSWS {TOKEN}",
-    "Accept": "application/json",
-    "rel": "next"
-}
+def get_user(login: str):
+    url = f"{ORG}/api/v1/users/{login}"
+    user = manage_data("GET", url)
+    user_id = user['id']
+    first_name = user['profile']['firstName']
+    last_name = user['profile']['lastName']
 
-login = input("Enter the user's login (usually their email): ")
+    print(f"Name: {first_name} {last_name}\n"
+          f"ID: {user_id}")
 
-url = f"{ORG}/api/v1/users/{login}"
-response = requests.get(url, headers=headers)
-user = response.json()
-user_id = user['id']
-first_name = user['profile']['firstName']
-last_name = user['profile']['lastName']
+def main():
+    parser = argparse.ArgumentParser(description="Get specific user")
 
-print(f"Name: {first_name} {last_name}\n"
-      f"ID: {user_id}")
+    parser.add_argument(
+        "login",
+        type=str,
+        help="The login of the account to find."
+    )
+
+    args = parser.parse_args()
+    get_user(args.login)
+
+
+if __name__ == "__main__":
+    main()
